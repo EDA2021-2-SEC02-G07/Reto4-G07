@@ -30,6 +30,7 @@ from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.Utils import error as error
 assert cf
 
 """
@@ -38,7 +39,20 @@ los mismos.
 """
 
 # Construccion de modelos
+def newCatalog():
+    """
+    Inicializa el catálogo. Crea una diccionario vacío para guardar
+    todos las estructuras de datos.
+    """
+    try:
+        catalog = {
+                    
+                    }
 
+        return catalog
+    except Exception as exp:
+        error.reraise(exp, 'model:newAnalyzer')
+    
 # Funciones para agregar informacion al catalogo
 
 # Funciones para creacion de datos
