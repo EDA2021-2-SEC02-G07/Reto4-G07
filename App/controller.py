@@ -37,14 +37,46 @@ def initCatalog():
     catalog = model.newCatalog()
     return catalog
 
-# Funciones para la carga de datos
 def loadData(catalog):
+
+    loadAirports(catalog)
+    loadRoutes(catalog)
+
+# Funciones para la carga de datos
+def loadAirports(catalog):
     """
     Carga los datos de los archivos y cargar los datos en la
     estructura de datos
     """
-   
-
+    airportsfile = 'airports_full.csv'
+    airportsfile = cf.data_dir + airportsfile
+    input_file = csv.DictReader(open(airportsfile, encoding="utf-8"),
+                                delimiter=",")
+    k = 0
+    for airport in input_file:
+        model.addAirport(catalog, model.createVertex(airport))
+        model.addCity(catalog, airport)
+        k+=1
+    print(k)
+    print(airport['City'], airport['IATA'])
+    for airport in input_file:
+        model.addCity(catalog, airport)
+    return catalog
+    
+def loadRoutes(catalog):
+    """
+    Carga los datos de los archivos y cargar los datos en la
+    estructura de datos
+    """
+    routesfile = 'routes_full.csv'
+    routesfile = cf.data_dir + routesfile
+    input_file = csv.DictReader(open(routesfile, encoding="utf-8"),
+                                delimiter=",")
+    
+    for airport in input_file:
+        model.addConnection(catalog, airport['Departure'], airport['Destination'], airport['distance_km'])
+    return catalog
+    
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo

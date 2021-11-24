@@ -29,6 +29,7 @@ import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
+from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.Utils import error as error
 assert cf
@@ -45,20 +46,74 @@ def newCatalog():
     todos las estructuras de datos.
     """
     try:
-        catalog = {
-                    
+        catalog = {'directedAirports': None,
+                   'cities': None 
                     }
 
+        catalog['directedAirports'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=21400,
+                                              comparefunction=compareAirports)
+
+        catalog['cities'] = mp.newMap(numelements= 20000,
+                                      maptype= 'PROBING',
+                                      loadfactor= 0.5)
         return catalog
     except Exception as exp:
         error.reraise(exp, 'model:newAnalyzer')
     
 # Funciones para agregar informacion al catalogo
 
-# Funciones para creacion de datos
+def addAirport(catalog, airport_vertex_name):
+    """
+    Adiciona un aeropuerto como un vertice del grafo
+    """
+    try: 
+        gr.insertVertex(catalog['directedAirports'], airport_vertex_name)
+    except Exception as exp:
+        error.reraise(exp, 'model:addAirport')
 
+def addConnection(catalog, Departure, Destination, distance_km):
+    """
+    Adiciona un arco entre dos aeropuertos.
+    """
+    Departure = Departure + '-' + me.getValue(mp.get(catalog['cities'], Departure)) 
+    Destination = Destination + '-' + me.getValue(mp.get(catalog['cities'], Destination)) 
+    edge = gr.getEdge(catalog['directedAirports'], Departure, Destination)
+    if edge is None:
+        gr.addEdge(catalog['directedAirports'], Departure, Destination, distance_km)
+    
+def addCity(catalog, airport):
+    """
+    Adiciona un aeropuerto como un vertice del grafo
+    """
+    try: 
+        mp.put(catalog['cities'], airport['IATA'], airport['City'])
+    except Exception as exp:
+        error.reraise(exp, 'model:addCity')
+
+# Funciones para creacion de datos
+def createVertex(airport):
+    """
+    A partir de la información de un aeropuerto se crea el nombre que tendrá su vértice en el grafo
+    """
+    name = airport['IATA'] + '-'
+    name = name + airport['City']
+    return name
 # Funciones de consulta
 
-# Funciones utilizadas para comparar elementos dentro de una lista
+# Funciones de comparación
+
+def compareAirports(Airport, keyvalueAirport):
+    """
+    Compara dos estaciones
+    """
+    Airportcode = keyvalueAirport['key']
+    if (Airport == Airportcode):
+        return 0
+    elif (Airport < Airportcode):
+        return 1
+    else:
+        return -1
 
 # Funciones de ordenamiento

@@ -24,7 +24,9 @@ import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
+from DISClib.ADT.graph import gr
 assert cf
+import time
 
 
 """
@@ -46,6 +48,17 @@ def printMenu():
     print("7- : Visualizar gráficamente los requerimientos")
 catalog = None
 
+def option0():
+    print("Cargando información de los archivos ....")
+    start_time = time.process_time()
+
+    catalog = controller.initCatalog() # Inicializador del catálogo
+    controller.loadData(catalog) # Carga de datos en el catálogo
+
+    stop_time = time.process_time()
+    elapsed_time_mseg = (stop_time - start_time)
+    print('La carga demoró', elapsed_time_mseg, 'segundos')
+    return catalog
 """
 Menu principal
 """
@@ -53,9 +66,12 @@ while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 0:
-        print("Cargando información de los archivos ....")
-        controller.initCatalog()
-        controller.loadData(catalog)
+        catalog = option0()
+        numVertex = gr.numVertices(catalog['directedAirports'])
+        numEdges= gr.numEdges(catalog['directedAirports'])
+        print('En el grafo dirgido "directedAirports" de aeropuertos y las rutas entre aeropuertos hay',
+         numVertex, 'aeropuertos y', numEdges, 'rutas.' )
+
     elif int(inputs[0]) == 1:
         pass
     elif int(inputs[0]) == 2:
