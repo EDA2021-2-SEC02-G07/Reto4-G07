@@ -40,6 +40,7 @@ los mismos.
 """
 
 # Construccion de modelos
+
 def newCatalog():
     """
     Inicializa el catálogo. Crea una diccionario vacío para guardar
