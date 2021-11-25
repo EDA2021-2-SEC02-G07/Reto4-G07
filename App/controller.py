@@ -41,32 +41,25 @@ def loadData(catalog):
 
     loadAirports(catalog)
     loadRoutes(catalog)
-
+    loadCities(catalog)
 # Funciones para la carga de datos
 def loadAirports(catalog):
     """
-    Carga los datos de los archivos y cargar los datos en la
-    estructura de datos
+    Carga los datos de los aeropuertos.
     """
     airportsfile = 'airports_full.csv'
     airportsfile = cf.data_dir + airportsfile
     input_file = csv.DictReader(open(airportsfile, encoding="utf-8"),
                                 delimiter=",")
-    k = 0
+
     for airport in input_file:
-        model.addAirport(catalog, model.createVertex(airport))
-        model.addCity(catalog, airport)
-        k+=1
-    print(k)
-    print(airport['City'], airport['IATA'])
-    for airport in input_file:
-        model.addCity(catalog, airport)
+        model.addAirport(catalog, airport)
+        model.addIATA(catalog, airport)
     return catalog
     
 def loadRoutes(catalog):
     """
-    Carga los datos de los archivos y cargar los datos en la
-    estructura de datos
+    Carga los datos de las rutas.
     """
     routesfile = 'routes_full.csv'
     routesfile = cf.data_dir + routesfile
@@ -75,6 +68,20 @@ def loadRoutes(catalog):
     
     for airport in input_file:
         model.addConnection(catalog, airport['Departure'], airport['Destination'], airport['distance_km'])
+        model.addRoute(catalog, airport['Departure'], airport['Destination'], airport['distance_km'])
+    return catalog
+
+def loadCities(catalog):
+    """
+    Carga los datos de las ciudades.
+    """
+    citiesfile = 'worldcities.csv'
+    citiesfile = cf.data_dir + citiesfile
+    input_file = csv.DictReader(open(citiesfile, encoding="utf-8"),
+                                delimiter=",")
+    
+    for city in input_file:
+        model.addCity(catalog, city)
     return catalog
     
 # Funciones de ordenamiento

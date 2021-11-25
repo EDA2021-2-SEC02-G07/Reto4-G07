@@ -25,6 +25,8 @@ import sys
 import controller
 from DISClib.ADT import list as lt
 from DISClib.ADT.graph import gr
+from DISClib.ADT import map as mp
+from DISClib.DataStructures import mapentry as me
 assert cf
 import time
 
@@ -69,8 +71,25 @@ while True:
         catalog = option0()
         numVertex = gr.numVertices(catalog['directedAirports'])
         numEdges= gr.numEdges(catalog['directedAirports'])
-        print('En el grafo dirgido "directedAirports" de aeropuertos y las rutas entre aeropuertos hay',
+        print()
+        print('En el grafo dirigido "directedAirports" de aeropuertos y las rutas entre aeropuertos hay',
          numVertex, 'aeropuertos y', numEdges, 'rutas.' )
+        print()
+        numVertex = gr.numVertices(catalog['notDirectedAirports'])
+        numEdges= gr.numEdges(catalog['notDirectedAirports'])
+        print()
+        print('En el grafo dirigido "notDirectedAirports" de aeropuertos y las rutas no dirigidas entre aeropuertos hay',
+         numVertex, 'aeropuertos y', numEdges, 'rutas.' )
+        print()
+        print('Hay', mp.size(catalog['cities']), 'ciudades.')
+        aeropuerto = me.getValue(mp.get(catalog['IATAS'], 'GKA'))
+        print('El primer aeropuerto cargado es el aeropuerto ' + aeropuerto['name'] + ' de la ciudad ' + aeropuerto['city'] 
+        + ' del país ' + aeropuerto['country'] + ' y tiene latitid y longitud ' + aeropuerto['latitude'] + ',' 
+        + aeropuerto['longitude'] + ' respectivamente.')
+        print()
+        aeropuerto = me.getValue(mp.get(catalog['cities'], 'Nordvik'))
+        print('La última ciudad cargada es Nordvik y tiene un población de ' + aeropuerto['population'] + ' y tiene latitid y longitud ' + aeropuerto['latitude'] + ',' 
+        + aeropuerto['longitude'] + ' respectivamente.')
 
     elif int(inputs[0]) == 1:
         pass

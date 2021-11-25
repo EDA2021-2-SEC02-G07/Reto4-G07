@@ -55,21 +55,32 @@ def newCatalog():
                                               size=21400,
                                               comparefunction=compareAirports)
 
+        catalog['notDirectedAirports'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=False,
+                                              size=21400,
+                                              comparefunction=compareAirports)
+
         catalog['cities'] = mp.newMap(numelements= 20000,
                                       maptype= 'PROBING',
                                       loadfactor= 0.5)
+        catalog['IATAS'] = mp.newMap(numelements= 20000,
+                                      maptype= 'PROBING',
+                                      loadfactor= 0.5)        
+        catalog['routes'] = mp.newMap(numelements= 20000,
+                                      maptype= 'PROBING',
+                                      loadfactor= 0.5)                          
         return catalog
     except Exception as exp:
         error.reraise(exp, 'model:newAnalyzer')
     
 # Funciones para agregar informacion al catalogo
 
-def addAirport(catalog, airport_vertex_name):
+def addAirport(catalog, airport):
     """
     Adiciona un aeropuerto como un vertice del grafo
     """
     try: 
-        gr.insertVertex(catalog['directedAirports'], airport_vertex_name)
+        gr.insertVertex(catalog['directedAirports'], airport['IATA'])
     except Exception as exp:
         error.reraise(exp, 'model:addAirport')
 
@@ -77,20 +88,52 @@ def addConnection(catalog, Departure, Destination, distance_km):
     """
     Adiciona un arco entre dos aeropuertos.
     """
-    Departure = Departure + '-' + me.getValue(mp.get(catalog['cities'], Departure)) 
-    Destination = Destination + '-' + me.getValue(mp.get(catalog['cities'], Destination)) 
     edge = gr.getEdge(catalog['directedAirports'], Departure, Destination)
     if edge is None:
         gr.addEdge(catalog['directedAirports'], Departure, Destination, distance_km)
     
-def addCity(catalog, airport):
+def addCity(catalog, city):
     """
     Adiciona un aeropuerto como un vertice del grafo
     """
     try: 
-        mp.put(catalog['cities'], airport['IATA'], airport['City'])
+        cityData = {'population': city['population'],
+                'latitude': city['lat'],
+                'longitude': city['lng']}
+        mp.put(catalog['cities'], city['city'], cityData)
     except Exception as exp:
         error.reraise(exp, 'model:addCity')
+
+def addIATA(catalog, airport):
+    """
+    Adiciona un aeropuerto como un vertice del grafo
+    """
+    try: 
+        airportData = {'name': airport['Name'],
+                'country': airport['Country'],
+                'city': airport['City'],
+                'latitude': airport['Latitude'],
+                'longitude': airport['Longitude']}
+        mp.put(catalog['IATAS'], airport['IATA'], airportData)
+    except Exception as exp:
+        error.reraise(exp, 'model:addCity')
+
+def addRoute(catalog, Departure, Destination, distance_km):
+    """
+    Adiciona un arco entre dos aeropuertos.
+    """
+    inverse = mp.get(catalog['routes'], Destination + '-' + Departure)
+    if inverse is not None: 
+        if not gr.containsVertex(catalog['notDirectedAirports'], Destination):
+            gr.insertVertex(catalog['notDirectedAirports'], Destination)
+        if not gr.containsVertex(catalog['notDirectedAirports'], Departure):
+            gr.insertVertex(catalog['notDirectedAirports'], Departure)
+        edge = gr.getEdge(catalog['notDirectedAirports'], Departure, Destination)
+        if edge is None:
+            gr.addEdge(catalog['notDirectedAirports'], Departure, Destination, distance_km)
+        mp.put(catalog['routes'], Departure + '-' + Destination, True)
+    else: 
+        mp.put(catalog['routes'], Departure + '-' + Destination, True)
 
 # Funciones para creacion de datos
 def createVertex(airport):
