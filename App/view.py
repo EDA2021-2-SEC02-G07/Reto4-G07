@@ -81,22 +81,35 @@ while True:
         print('En el grafo dirigido "notDirectedAirports" de aeropuertos y las rutas no dirigidas entre aeropuertos hay',
          numVertex, 'aeropuertos y', numEdges, 'rutas.' )
         print()
-        print('Hay', mp.size(catalog['cities']), 'ciudades.')
+        print('Hay', mp.size(catalog['cities']), 'nombres de ciudades registrados')
         aeropuerto = me.getValue(mp.get(catalog['IATAS'], 'GKA'))
         print('El primer aeropuerto cargado es el aeropuerto ' + aeropuerto['name'] + ' de la ciudad ' + aeropuerto['city'] 
         + ' del país ' + aeropuerto['country'] + ' y tiene latitid y longitud ' + aeropuerto['latitude'] + ',' 
         + aeropuerto['longitude'] + ' respectivamente.')
         print()
-        aeropuerto = me.getValue(mp.get(catalog['cities'], 'Nordvik'))
-        print('La última ciudad cargada es Nordvik y tiene un población de ' + aeropuerto['population'] + ' y tiene latitid y longitud ' + aeropuerto['latitude'] + ',' 
-        + aeropuerto['longitude'] + ' respectivamente.')
+        city = lt.getElement(me.getValue(mp.get(catalog['cities'], 'Nordvik')), 1)
+        print('La última ciudad cargada es Nordvik y tiene un población de ' + city['population'] + ' y tiene latitid y longitud ' + aeropuerto['latitude'] + ',' 
+        + city['longitude'] + ' respectivamente.')
 
     elif int(inputs[0]) == 1:
         pass
     elif int(inputs[0]) == 2:
         pass
     elif int(inputs[0]) == 3:
+        origin = input('Por favor ingrese el nombre de la ciudad de origen: ')
+        origin_data = controller.defineCity(catalog, origin)
+        if origin_data == None:
+            print('La ciudad ingresada no registra')
+            pass
+        destination = input('Por favor ingrese el nombre de la ciudad de destino: ')
+        destination_data = controller.defineCity(catalog, destination)
+        if destination_data == None:
+            print('La ciudad ingresada no registra')
+            pass
+
         pass
+
+    
     elif int(inputs[0]) == 4:
         pass
     elif int(inputs[0]) == 5:

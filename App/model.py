@@ -95,13 +95,19 @@ def addConnection(catalog, Departure, Destination, distance_km):
     
 def addCity(catalog, city):
     """
-    Adiciona un aeropuerto como un vertice del grafo
+    Adiciona una ciudad al mapa de ciudades
     """
     try: 
         cityData = {'population': city['population'],
                 'latitude': city['lat'],
-                'longitude': city['lng']}
-        mp.put(catalog['cities'], city['city'], cityData)
+                'longitude': city['lng'], 'country': city['country']}
+        if mp.contains(catalog['cities'], city['city']):
+            homonyms_cities = me.getValue(mp.get(catalog['cities'], city['city']))
+            lt.addLast(homonyms_cities, cityData)
+        else: 
+            homonyms_cities = lt.newList('ARRAY_LIST')
+            lt.addLast(homonyms_cities, cityData)
+            mp.put(catalog['cities'], city['city'], homonyms_cities)
     except Exception as exp:
         error.reraise(exp, 'model:addCity')
 

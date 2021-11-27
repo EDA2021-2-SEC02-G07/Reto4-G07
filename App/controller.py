@@ -87,3 +87,21 @@ def loadCities(catalog):
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+
+def defineCity(catalog, city_name): 
+    city = None
+    if model.mp.contains(catalog['cities'], city_name):
+        cities_list = model.me.getValue(model.mp.get(catalog['cities'], city_name))
+        if model.lt.size(cities_list) == 1:
+            city = model.lt.getElement(cities_list, 1)
+        else: 
+            print('Por favor elija el número de la ciudad que quiere ingresar:')
+            for i in range(1, model.lt.size(cities_list) + 1):
+                homonym_city = model.lt.getElement(cities_list, i)
+                print(i, '- Nombre: ', city_name , 'País: ', homonym_city['country'], 'Población: ', homonym_city['population'],
+                'Latitud: ', homonym_city['latitude'], 'Longitud: ', homonym_city['longitude'] )
+            number = input('Ingrese el número: ')
+            number = int(number)
+            city = model.lt.getElement(cities_list, number)
+    return city
+
