@@ -42,7 +42,19 @@ def loadData(catalog):
     loadAirports(catalog)
     loadRoutes(catalog)
     loadCities(catalog)
+    loadConnectedAirports(catalog)
 # Funciones para la carga de datos
+
+def loadConnectedAirports(catalog):
+    '''
+    Carga los aereopuertos más conectados al catálogo
+    '''
+    connected_airports = model.connected_airports(catalog)
+    catalog['connected_airports'] = connected_airports
+
+
+
+
 def loadAirports(catalog):
     """
     Carga los datos de los aeropuertos.

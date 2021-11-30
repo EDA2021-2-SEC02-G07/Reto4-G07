@@ -21,6 +21,7 @@
  """
 
 import config as cf
+from tabulate import tabulate
 import sys
 import controller
 from DISClib.ADT import list as lt
@@ -92,7 +93,28 @@ while True:
         + city['longitude'] + ' respectivamente.')
 
     elif int(inputs[0]) == 1:
-        pass
+
+        tabla1 = [['Iata', 'Conexiones', 'Nombre','Ciudad','País']]
+        tabla2 = [['Iata', 'Conexiones', 'Nombre','Ciudad','País']]
+        interconnected_airports = catalog['connected_airports']
+        airports_directed = interconnected_airports[0]
+        airports_no_directed = interconnected_airports[1]
+        airports_map = catalog['IATAS']
+        for key in  airports_directed:
+            airport = me.getValue(mp.get(airports_map, key))
+            line = [key, airports_directed[key], airport['name'], airport['city'], airport['country'] ]
+            tabla1.append(line)
+        for key in  airports_no_directed:
+            airport = me.getValue(mp.get(airports_map, key))
+            line = [key, airports_no_directed[key], airport['name'], airport['city'], airport['country'] ]
+            tabla2.append(line)
+        
+        print('Los 10 aereopuertos que son los mayores puntos de interconexión aerea (grafo dirigido) son:')
+        print(tabulate(tabla1 , headers='firstrow', tablefmt='fancy_grid'))
+        print('Los 10 aereopuertos que son los mayores puntos de interconexión aerea (grafo no dirigido) son:')
+        print(tabulate(tabla2 , headers='firstrow', tablefmt='fancy_grid'))
+
+
     elif int(inputs[0]) == 2:
         pass
     elif int(inputs[0]) == 3:

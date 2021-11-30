@@ -69,7 +69,8 @@ def newCatalog():
                                       loadfactor= 0.5)        
         catalog['routes'] = mp.newMap(numelements= 20000,
                                       maptype= 'PROBING',
-                                      loadfactor= 0.5)                          
+                                      loadfactor= 0.5)
+        catalog['connected_airports'] = None                      
         return catalog
     except Exception as exp:
         error.reraise(exp, 'model:newAnalyzer')
@@ -151,6 +152,56 @@ def createVertex(airport):
     name = name + airport['City']
     return name
 # Funciones de consulta
+
+
+def minimum(dictionary):
+    '''
+    Determina la llave y el valor mínimo de un diccionario
+    '''
+    minimum = None
+    min_key = None
+    for key in dictionary:
+        value = dictionary[key]
+        if minimum == None or value < minimum:
+            minimum = value
+            min_key = key
+    return minimum, min_key
+
+        
+
+def search_connected_airports(vertices, graph):
+    '''
+    Busca los aereopuertos más interconectados
+    '''
+    selected_airports = {}
+    min_connections = -1
+    for i in range(1, lt.size(vertices)+1):
+        airport = lt.getElement(vertices, i)
+        connections = gr.degree(graph, airport)
+        if len(selected_airports) < 10:
+            selected_airports[airport] = connections
+            min_connections, min_key = minimum(selected_airports)
+        elif connections > min_connections:
+            selected_airports.pop(min_key)
+            selected_airports[airport] = connections
+            min_connections, min_key = minimum(selected_airports)
+
+    return selected_airports        
+
+def connected_airports(catalog):
+    '''
+    Define los aereopuertos conectados de los dos grafos
+    '''
+    airports1 = catalog['directedAirports']
+    airports2 = catalog['notDirectedAirports']
+    airports1_vertices = gr.vertices(airports1)
+    airports2_vertices = gr.vertices(airports2)
+    connected_airports1 = search_connected_airports(airports1_vertices, airports1)
+    connected_airports2 = search_connected_airports(airports2_vertices, airports2)
+    return connected_airports1, connected_airports2
+
+
+
 
 # Funciones de comparación
 
