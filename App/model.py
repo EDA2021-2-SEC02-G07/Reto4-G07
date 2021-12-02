@@ -126,6 +126,7 @@ def addIATA(catalog, airport):
     except Exception as exp:
         error.reraise(exp, 'model:addCity')
 
+      
 def addRoute(catalog, Departure, Destination, distance_km):
     """
     Adiciona un arco entre dos aeropuertos.
