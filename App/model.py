@@ -32,6 +32,7 @@ from DISClib.DataStructures import mapentry as me
 from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.Utils import error as error
+from DISClib.Algorithms.Graphs import scc
 assert cf
 
 """
@@ -47,9 +48,7 @@ def newCatalog():
     todos las estructuras de datos.
     """
     try:
-        catalog = {'directedAirports': None,
-                   'cities': None 
-                    }
+        catalog = {}
 
         catalog['directedAirports'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
@@ -70,7 +69,9 @@ def newCatalog():
         catalog['routes'] = mp.newMap(numelements= 20000,
                                       maptype= 'PROBING',
                                       loadfactor= 0.5)
-        catalog['connected_airports'] = None                      
+        catalog['connected_airports'] = None        
+
+        catalog['SCC'] = None            
         return catalog
     except Exception as exp:
         error.reraise(exp, 'model:newAnalyzer')

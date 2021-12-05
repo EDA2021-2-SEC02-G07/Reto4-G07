@@ -23,7 +23,7 @@
 import config as cf
 import model
 import csv
-
+from DISClib.Algorithms.Graphs import scc
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.
@@ -43,6 +43,7 @@ def loadData(catalog):
     loadRoutes(catalog)
     loadCities(catalog)
     loadConnectedAirports(catalog)
+    loadSCC(catalog)
 # Funciones para la carga de datos
 
 def loadConnectedAirports(catalog):
@@ -59,7 +60,7 @@ def loadAirports(catalog):
     """
     Carga los datos de los aeropuertos.
     """
-    airportsfile = 'airports_full.csv'
+    airportsfile = 'airports-utf8-small.csv'
     airportsfile = cf.data_dir + airportsfile
     input_file = csv.DictReader(open(airportsfile, encoding="utf-8"),
                                 delimiter=",")
@@ -73,21 +74,21 @@ def loadRoutes(catalog):
     """
     Carga los datos de las rutas.
     """
-    routesfile = 'routes_full.csv'
+    routesfile = 'routes-utf8-small.csv'
     routesfile = cf.data_dir + routesfile
     input_file = csv.DictReader(open(routesfile, encoding="utf-8"),
                                 delimiter=",")
     
     for airport in input_file:
         model.addConnection(catalog, airport['Departure'], airport['Destination'], airport['distance_km'])
-        model.addRoute(catalog, airport['Departure'], airport['Destination'], airport['distance_km'])
+        model.addRoute(catalog, airport['Departure'], airport['Destination'], airport['distance_km']) 
     return catalog
 
 def loadCities(catalog):
     """
     Carga los datos de las ciudades.
     """
-    citiesfile = 'worldcities.csv'
+    citiesfile = 'worldcities-utf8.csv'
     citiesfile = cf.data_dir + citiesfile
     input_file = csv.DictReader(open(citiesfile, encoding="utf-8"),
                                 delimiter=",")
@@ -96,6 +97,8 @@ def loadCities(catalog):
         model.addCity(catalog, city)
     return catalog
     
+def loadSCC(catalog):
+    catalog['SCC'] = scc.KosarajuSCC(catalog['directedAirports']) 
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo

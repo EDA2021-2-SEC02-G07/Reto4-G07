@@ -28,6 +28,8 @@ from DISClib.ADT import list as lt
 from DISClib.ADT.graph import gr
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
+from DISClib.Algorithms.Graphs import scc
+from DISClib.Algorithms.Graphs import prim
 assert cf
 import time
 
@@ -83,14 +85,7 @@ while True:
          numVertex, 'aeropuertos y', numEdges, 'rutas.' )
         print()
         print('Hay', mp.size(catalog['cities']), 'nombres de ciudades registrados')
-        aeropuerto = me.getValue(mp.get(catalog['IATAS'], 'GKA'))
-        print('El primer aeropuerto cargado es el aeropuerto ' + aeropuerto['name'] + ' de la ciudad ' + aeropuerto['city'] 
-        + ' del país ' + aeropuerto['country'] + ' y tiene latitid y longitud ' + aeropuerto['latitude'] + ',' 
-        + aeropuerto['longitude'] + ' respectivamente.')
-        print()
-        city = lt.getElement(me.getValue(mp.get(catalog['cities'], 'Nordvik')), 1)
-        print('La última ciudad cargada es Nordvik y tiene un población de ' + city['population'] + ' y tiene latitid y longitud ' + aeropuerto['latitude'] + ',' 
-        + city['longitude'] + ' respectivamente.')
+        
 
     elif int(inputs[0]) == 1:
 
@@ -116,7 +111,19 @@ while True:
 
 
     elif int(inputs[0]) == 2:
-        pass
+        try:
+            graph = catalog['directedAirports']
+            comps = catalog['SCC']
+            print('=============== Req 2. inputs ===============')
+            a1 = input('Inserte el código IATA del aeropuerto 1: ')
+            a2 = input('Inserte el código IATA del aeropuerto 2: ')
+            print()
+            print('=============== Req 2. answer ===============')
+            conected = scc.stronglyConnected(comps, a1, a2)
+            print('Número de componentes fuertemente conectados:', scc.connectedComponents(comps))
+            print('¿Están el aeropuerto con código "' + a1 + '" y el aeropuerto con código "' + a2 + '" fuertemente conectados?:', conected)
+        except:
+            print('Inserte valores válidos compa.')
     elif int(inputs[0]) == 3:
         origin = input('Por favor ingrese el nombre de la ciudad de origen: ')
         origin_data = controller.defineCity(catalog, origin)
