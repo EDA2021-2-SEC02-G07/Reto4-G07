@@ -120,7 +120,7 @@ while True:
         print(tabulate(citiesTable , headers='firstrow', tablefmt='fancy_grid'))
         print()
     elif int(inputs[0]) == 1:
-
+        print('=============== Req 1. answer ===============')
         tabla1 = [['Iata', 'Conexiones', 'Nombre','Ciudad','País']]
         tabla2 = [['Iata', 'Conexiones', 'Nombre','Ciudad','País']]
         interconnected_airports = catalog['connected_airports']
@@ -154,7 +154,9 @@ while True:
             print('Número de componentes fuertemente conectados:', scc.connectedComponents(comps))
             print('¿Están el aeropuerto con código "' + a1 + '" y el aeropuerto con código "' + a2 + '" fuertemente conectados?:', conected)
         except:
-            print('Inserte valores válidos compa.')
+            print('Inserte valores válidos compa.') #XD
+
+
 
     elif int(inputs[0]) == 3:
         origin = input('Por favor ingrese el nombre de la ciudad de origen: ')
@@ -185,8 +187,30 @@ while True:
         except:
             print('Inserte valores válidos compa.')
         
-    elif int(inputs[0]) == 5:
-        pass
+    elif int(inputs[0]) == 5: 
+        Iatacode = input('Ingrese el código IATA del aereopuerto que está cerrado: ')
+        data = controller.affected_airports(catalog, Iatacode)
+        affected_airports = []
+        list1 = data[0]
+        list2 = data[1]
+        total = data[2]
+        for i in range(1,lt.size(list1)+1):
+            airport = lt.getElement(list1, i)
+            affected_airports.append(airport)
+        for i in range(1, lt.size(list2)+1):
+            airport = lt.getElement(list2, i)
+            affected_airports.append(airport)
+        result = []
+        for airport in affected_airports:
+            if airport not in result:
+                result.append(airport)
+        print('El cierre afecta a', len(result), 'aereopuerto(s)')
+        if len(result) <= 6:
+            pass
+        else: 
+            result = result[0:3]+result[len(result)-4:]
+        print(result)
+
     elif int(inputs[0]) == 6:
         pass
     elif int(inputs[0]) == 7:

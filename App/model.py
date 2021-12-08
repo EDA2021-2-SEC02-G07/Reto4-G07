@@ -80,7 +80,13 @@ def newCatalog():
                                       loadfactor= 0.5) 
         catalog['routes'] = mp.newMap(numelements= 20000,
                                       maptype= 'PROBING',
-                                      loadfactor= 0.5)                
+                                      loadfactor= 0.5)  
+        catalog['connected_airports'] = None        
+
+        catalog['SCC'] = None    
+
+        catalog['InRoutes'] = {}
+        
         return catalog
     except Exception as exp:
         error.reraise(exp, 'model:newAnalyzer')
@@ -172,6 +178,16 @@ def addConnectionToMST(catalog, Departure, Destination, distance_km):
     if edge is None:
         gr.addEdge(catalog['MST'], Departure, Destination, distance_km)
         
+
+def addInRoute(catalog,V_origin, V_destination):
+    routes_map = catalog['InRoutes']
+    if V_destination not in routes_map:
+        routes_map[V_destination] = lt.newList('ARRAY_LIST')
+        lt.addLast(routes_map[V_destination], V_origin)
+    else:
+        lt.addLast(routes_map[V_destination],V_origin) 
+    
+
 # Funciones para creacion de datos
 def createVertex(airport):
     """
@@ -194,6 +210,16 @@ def minimum(dictionary):
             minimum = value
             min_key = key
     return minimum, min_key
+
+        
+def affected_airports(catalog, Iatacode):
+    directed_graph = catalog['directedAirports']
+    affected_airpots_directed = gr.degree(directed_graph, Iatacode)
+    airports_list = gr.adjacents(directed_graph, Iatacode)
+    airports_list2 = catalog['InRoutes'][Iatacode]
+    return (airports_list, airports_list2, affected_airpots_directed)
+
+
 
 def search_connected_airports(vertices, graph):
     '''

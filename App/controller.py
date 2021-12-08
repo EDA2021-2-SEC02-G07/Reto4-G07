@@ -92,7 +92,9 @@ def loadRoutes(catalog):
         n+= 1
         model.addConnection(catalog, route['Departure'], route['Destination'], float(route['distance_km']))
         model.addRoute(catalog, route['Departure'], route['Destination'], float(route['distance_km'])) 
+        model.addInRoute(catalog, route['Departure'], route['Destination'])
     catalog['numRoutes'] = n
+    
     return catalog
 
 def loadCities(catalog):
@@ -188,3 +190,6 @@ def appendEdge(list, edge, mst, vertex, adjacents):
                 lt.removeFirst(adjs)
             
     return R
+def affected_airports(catalog, Iatacode):
+    data = model.affected_airports(catalog, Iatacode)
+    return data
