@@ -24,7 +24,12 @@ import config as cf
 import model
 import csv
 from DISClib.Algorithms.Graphs import scc
-
+from DISClib.Algorithms.Graphs import prim
+from DISClib.ADT import map as mp
+from DISClib.DataStructures import mapentry as me
+from DISClib.ADT import list as lt
+from DISClib.ADT.graph import gr
+from DISClib.Algorithms.Graphs import dfs
 """
 El controlador se encarga de mediar entre la vista y el modelo.
 """
@@ -44,6 +49,8 @@ def loadData(catalog):
     loadCities(catalog)
     loadConnectedAirports(catalog)
     loadSCC(catalog)
+    loadMST(catalog)
+
 # Funciones para la carga de datos
 
 def loadConnectedAirports(catalog):
@@ -53,9 +60,6 @@ def loadConnectedAirports(catalog):
     connected_airports = model.connected_airports(catalog)
     catalog['connected_airports'] = connected_airports
 
-
-
-
 def loadAirports(catalog):
     """
     Carga los datos de los aeropuertos.
@@ -64,10 +68,15 @@ def loadAirports(catalog):
     airportsfile = cf.data_dir + airportsfile
     input_file = csv.DictReader(open(airportsfile, encoding="utf-8"),
                                 delimiter=",")
-
+    
+    firstAirport = True
     for airport in input_file:
         model.addAirport(catalog, airport)
         model.addIATA(catalog, airport)
+        if firstAirport == True:
+            firstAirport = airport
+    catalog['initialAirport'] = firstAirport
+    catalog['finalAirport'] = airport
     return catalog
     
 def loadRoutes(catalog):
@@ -78,10 +87,12 @@ def loadRoutes(catalog):
     routesfile = cf.data_dir + routesfile
     input_file = csv.DictReader(open(routesfile, encoding="utf-8"),
                                 delimiter=",")
-    
-    for airport in input_file:
-        model.addConnection(catalog, airport['Departure'], airport['Destination'], airport['distance_km'])
-        model.addRoute(catalog, airport['Departure'], airport['Destination'], airport['distance_km']) 
+    n = 0                            
+    for route in input_file:
+        n+= 1
+        model.addConnection(catalog, route['Departure'], route['Destination'], float(route['distance_km']))
+        model.addRoute(catalog, route['Departure'], route['Destination'], float(route['distance_km'])) 
+    catalog['numRoutes'] = n
     return catalog
 
 def loadCities(catalog):
@@ -93,12 +104,28 @@ def loadCities(catalog):
     input_file = csv.DictReader(open(citiesfile, encoding="utf-8"),
                                 delimiter=",")
     
+    n = 0
     for city in input_file:
+        if n == 0:
+            firstCity = city
         model.addCity(catalog, city)
+        n +=1
+    catalog['firstCity'] = firstCity
+    catalog['lastCity'] = city
+    catalog['numCities'] = n
     return catalog
     
 def loadSCC(catalog):
     catalog['SCC'] = scc.KosarajuSCC(catalog['directedAirports']) 
+
+def loadMST(catalog):
+    graph = catalog['notDirectedAirports']
+    MST = prim.PrimMST(graph)
+    edgesList = mp.valueSet(MST['edgeTo'])
+    for edge in lt.iterator(edgesList):
+        model.addAirportToMST(catalog, edge['vertexA'])
+        model.addAirportToMST(catalog, edge['vertexB'])
+        model.addConnectionToMST(catalog, edge['vertexA'], edge['vertexB'], edge['weight'])
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
@@ -120,3 +147,44 @@ def defineCity(catalog, city_name):
             city = model.lt.getElement(cities_list, number)
     return city
 
+def findLargerRoute(catalog, km, city):
+    airports = me.getValue(mp.get(catalog['IATASbyCity'], city))
+    mst = catalog['MST']
+    ramasMayores = []
+    for IATA in lt.iterator(airports):
+        if gr.containsVertex(mst, IATA):
+            adjacents = gr.adjacentEdges(mst, IATA)
+            R = []
+            for edge in lt.iterator(adjacents):
+                r = []
+                r.append(edge)
+                route = appendEdge(r, edge, mst, IATA, adjacents)
+                lt.removeFirst(adjacents)
+                if len(r) > len(R):
+                    R = r
+                
+
+
+                
+        else: return False
+
+def appendEdge(list, edge, mst, vertex, adjacents):
+    n = False
+    next = edge['vertexB']
+    adjs = gr.adjacentEdges(mst, next)
+    if lt.size(adjs) == 1:
+        R = list
+    else:
+        rCopy = list
+        for e in lt.iterator(adjs):
+            if e['vertexB'] != vertex:
+                if n == True:
+                    appendEdge(rCopy, e, mst, e['vertexA'])
+                else:
+                    n = True
+                    list.append(e)
+                    appendEdge(list, e, mst, e['vertexA'])
+            else: 
+                lt.removeFirst(adjs)
+            
+    return R

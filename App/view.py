@@ -30,6 +30,7 @@ from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import prim
+from DISClib.Algorithms.Graphs import dfs
 assert cf
 import time
 
@@ -74,19 +75,50 @@ while True:
         catalog = option0()
         numVertex = gr.numVertices(catalog['directedAirports'])
         numEdges= gr.numEdges(catalog['directedAirports'])
-        print()
-        print('En el grafo dirigido "directedAirports" de aeropuertos y las rutas entre aeropuertos hay',
-         numVertex, 'aeropuertos y', numEdges, 'rutas.' )
+        print('=== Aeropuertos-Rutas Grafo Dirigido===')
+        print('Vertices:', numVertex, ' vertices de', numVertex, 'aeropuetos cargados.' )
+        print('Arcos:', numEdges, ' arcos de', catalog['numRoutes'], 'rutas cargadas.' )
+        graphTable = [['IATA','Name', 'City', 'Country', 'Latitude', 'Longitude']]
+        initialAirport = catalog['initialAirport']
+        finalAirport = catalog['finalAirport']
+        graphTable.append([initialAirport['IATA'], initialAirport['Name'], initialAirport['Country'],
+         round(float(initialAirport['Latitude']), 4), round(float(initialAirport['Longitude']), 4)])
+        graphTable.append([finalAirport['IATA'], finalAirport['Name'], finalAirport['Country'],
+         round(float(finalAirport['Latitude']), 4), round(float(finalAirport['Longitude']), 4)])
+        print(tabulate(graphTable , headers='firstrow', tablefmt='fancy_grid'))
         print()
         numVertex = gr.numVertices(catalog['notDirectedAirports'])
         numEdges= gr.numEdges(catalog['notDirectedAirports'])
-        print()
-        print('En el grafo dirigido "notDirectedAirports" de aeropuertos y las rutas no dirigidas entre aeropuertos hay',
-         numVertex, 'aeropuertos y', numEdges, 'rutas.' )
-        print()
-        print('Hay', mp.size(catalog['cities']), 'nombres de ciudades registrados')
-        
 
+        print()
+        numVertex = gr.numVertices(catalog['notDirectedAirports'])
+        numEdges= gr.numEdges(catalog['notDirectedAirports'])
+        print('=== Aeropuertos-Rutas Grafo No Dirigido===')
+        print('Vertices:', numVertex, ' vertices de', numVertex, 'aeropuetos cargados.' )
+        print('Arcos:', numEdges, ' arcos de', catalog['numRoutes'], 'rutas cargadas.' )
+        graphTable = [['IATA','Name', 'City', 'Country', 'Latitude', 'Longitude']]
+        initialAirport = catalog['initialAirport']
+        finalAirport = catalog['finalAirport']
+        graphTable.append([initialAirport['IATA'], initialAirport['Name'], initialAirport['Country'],
+         round(float(initialAirport['Latitude']), 4), round(float(initialAirport['Longitude']), 4)])
+        graphTable.append([finalAirport['IATA'], finalAirport['Name'], finalAirport['Country'],
+         round(float(finalAirport['Latitude']), 4), round(float(finalAirport['Longitude']), 4)])
+        print(tabulate(graphTable , headers='firstrow', tablefmt='fancy_grid'))
+        print()
+        numVertex = gr.numVertices(catalog['notDirectedAirports'])
+        numEdges= gr.numEdges(catalog['notDirectedAirports'])
+
+        print()
+        print('=== Ciudades cargadas===')
+        print('Hay', catalog['numCities'], 'nombres de ciudades registrados')
+        citiesTable = [['City', 'Country', 'Latitude', 'Longitude', 'population']]
+        firstCity = catalog['firstCity']
+        lastCity = catalog['lastCity']
+        citiesTable.append([firstCity['city'], firstCity['country'], firstCity['lat'], firstCity['lng'], firstCity['population']])
+        citiesTable.append([lastCity['city'], lastCity['country'], lastCity['lat'], lastCity['lng'], lastCity['population']])
+        print('La primera y última ciudad cargada son:')
+        print(tabulate(citiesTable , headers='firstrow', tablefmt='fancy_grid'))
+        print()
     elif int(inputs[0]) == 1:
 
         tabla1 = [['Iata', 'Conexiones', 'Nombre','Ciudad','País']]
@@ -109,7 +141,6 @@ while True:
         print('Los 10 aereopuertos que son los mayores puntos de interconexión aerea (grafo no dirigido) son:')
         print(tabulate(tabla2 , headers='firstrow', tablefmt='fancy_grid'))
 
-
     elif int(inputs[0]) == 2:
         try:
             graph = catalog['directedAirports']
@@ -124,6 +155,7 @@ while True:
             print('¿Están el aeropuerto con código "' + a1 + '" y el aeropuerto con código "' + a2 + '" fuertemente conectados?:', conected)
         except:
             print('Inserte valores válidos compa.')
+
     elif int(inputs[0]) == 3:
         origin = input('Por favor ingrese el nombre de la ciudad de origen: ')
         origin_data = controller.defineCity(catalog, origin)
@@ -138,9 +170,21 @@ while True:
 
         pass
 
-    
     elif int(inputs[0]) == 4:
-        pass
+        try:
+            mst = catalog['MST']
+            print('=============== Req 2. inputs ===============')
+            city = input('Inserte el nombre de la ciudad de origen: ')
+            miles = float(input('Inserte el número de millas acumuladas por el viajero: '))
+            km = miles *1.6
+            print()
+            print('=============== Req 2. answer ===============')
+            controller.findLargerRoute(catalog, km, 'Dubai')
+            print('Número de componentes fuertemente conectados:', )
+            print('¿Están el aeropuerto con código "' + a1 + '" y el aeropuerto con código "' + a2 + '" fuertemente conectados?:', conected)
+        except:
+            print('Inserte valores válidos compa.')
+        
     elif int(inputs[0]) == 5:
         pass
     elif int(inputs[0]) == 6:
