@@ -71,7 +71,10 @@ def newCatalog():
                                       loadfactor= 0.5)
         catalog['connected_airports'] = None        
 
-        catalog['SCC'] = None            
+        catalog['SCC'] = None    
+
+        catalog['InRoutes'] = {}
+        
         return catalog
     except Exception as exp:
         error.reraise(exp, 'model:newAnalyzer')
@@ -145,6 +148,16 @@ def addRoute(catalog, Departure, Destination, distance_km):
     else: 
         mp.put(catalog['routes'], Departure + '-' + Destination, True)
 
+
+def addInRoute(catalog,V_origin, V_destination):
+    routes_map = catalog['InRoutes']
+    if V_destination not in routes_map:
+        routes_map[V_destination] = lt.newList('ARRAY_LIST')
+        lt.addLast(routes_map[V_destination], V_origin)
+    else:
+        lt.addLast(routes_map[V_destination],V_origin) 
+    
+
 # Funciones para creacion de datos
 def createVertex(airport):
     """
@@ -170,6 +183,14 @@ def minimum(dictionary):
     return minimum, min_key
 
         
+def affected_airports(catalog, Iatacode):
+    directed_graph = catalog['directedAirports']
+    affected_airpots_directed = gr.degree(directed_graph, Iatacode)
+    airports_list = gr.adjacents(directed_graph, Iatacode)
+    airports_list2 = catalog['InRoutes'][Iatacode]
+    return (airports_list, airports_list2, affected_airpots_directed)
+
+
 
 def search_connected_airports(vertices, graph):
     '''

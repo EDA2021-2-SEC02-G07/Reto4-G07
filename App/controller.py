@@ -82,6 +82,7 @@ def loadRoutes(catalog):
     for airport in input_file:
         model.addConnection(catalog, airport['Departure'], airport['Destination'], airport['distance_km'])
         model.addRoute(catalog, airport['Departure'], airport['Destination'], airport['distance_km']) 
+        model.addInRoute(catalog, airport['Departure'], airport['Destination'])
     return catalog
 
 def loadCities(catalog):
@@ -120,3 +121,6 @@ def defineCity(catalog, city_name):
             city = model.lt.getElement(cities_list, number)
     return city
 
+def affected_airports(catalog, Iatacode):
+    data = model.affected_airports(catalog, Iatacode)
+    return data
