@@ -26,6 +26,7 @@
 
 
 import config as cf
+import math 
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
@@ -167,6 +168,47 @@ def createVertex(airport):
     name = name + airport['City']
     return name
 # Funciones de consulta
+
+def hav(x):
+    ''' retorna la función hav de un dato'''
+    result = (math.sin(x/2))**2
+    return result
+
+def invhav(x):
+    ''' retorna la inversa de la función hav'''
+    result = 2*(math.asin((x**0.5)))
+    return result
+
+def havDistance(lon1, lon2, lat1, lat2):
+    r = 6371
+    x = hav(lat2-lat1)+((1-hav(lat1-lat2)-hav(lat1+lat2))*hav(long2-long1))
+    d = 2*r*(math.asin(x**0.5))
+    return d
+
+def latitudeUpDown(latitude):
+    d = 10
+    r = 6371
+    k = invhav(math.sin(d/(2*r))**2)
+    l1 = k + latitude
+    l2 = latitude - k
+    
+    if l1 > l2:
+        return l1, l2
+    else: 
+        return l2, l1
+
+def longitudeUpDown(longitude, latitude):
+    d = 10
+    r = 6371
+    div = (math.sin(d/(2*r))**2)/(1-hav(2*latitude))
+    k = invhav(div)
+    l1 = k+longitude
+    l2 = longitude-k
+
+    if l1 > l2: 
+        return l1, l2
+    else:
+        return l2, l1
 
 
 def minimum(dictionary):
