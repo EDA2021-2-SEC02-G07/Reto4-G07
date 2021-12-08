@@ -29,6 +29,7 @@ import config as cf
 import math 
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
+from DISClib.ADT import orderedmap as om
 from DISClib.DataStructures import mapentry as me
 from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Sorting import shellsort as sa
@@ -75,7 +76,9 @@ def newCatalog():
         catalog['SCC'] = None    
 
         catalog['InRoutes'] = {}
-        
+
+        catalog['LatitudesTree'] = om.newMap(omaptype= 'RBT', comparefunction= cmpValues)
+
         return catalog
     except Exception as exp:
         error.reraise(exp, 'model:newAnalyzer')
@@ -130,6 +133,27 @@ def addIATA(catalog, airport):
         mp.put(catalog['IATAS'], airport['IATA'], airportData)
     except Exception as exp:
         error.reraise(exp, 'model:addCity')
+
+
+
+def addIATACoordinates(catalog, airport):
+    """
+    Adiciona un aereopuerto al arbol RBT
+    """
+    Iatacode = airport['IATA']
+    latitude = airport['Latitude']
+    longitude = airport['Longitude']
+    latitudes = catalog['LatitudesTree']
+
+    try:
+        longitudes = om.get(latitudes, latitude)
+        om.put(longitudes, longitude, Iatacode)
+    except:
+        longitudes = om.newMap(omaptype= 'RBT', comparefunction= cmpValues)
+        om.put(longitudes, longitude, Iatacode)
+        om.put(latitudes, latitude, longitudes)
+
+    
 
       
 def addRoute(catalog, Departure, Destination, distance_km):
@@ -243,7 +267,7 @@ def search_connected_airports(vertices, graph):
     for i in range(1, lt.size(vertices)+1):
         airport = lt.getElement(vertices, i)
         connections = gr.degree(graph, airport)
-        if len(selected_airports) < 10:
+        if len(selected_airports) < 5:
             selected_airports[airport] = connections
             min_connections, min_key = minimum(selected_airports)
         elif connections > min_connections:
@@ -280,6 +304,17 @@ def compareAirports(Airport, keyvalueAirport):
     elif (Airport < Airportcode):
         return 1
     else:
+        return -1
+
+def cmpValues(value1, value2):
+    """
+    Compara dos valores numéricos o str cualquiera
+    """
+    if value1 == value2:
+        return 0
+    elif value1 > value2:
+        return 1
+    else: 
         return -1
 
 # Funciones de ordenamiento

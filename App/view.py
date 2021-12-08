@@ -128,6 +128,7 @@ while True:
 
 
     elif int(inputs[0]) == 3:
+        print('=============== Req 3. inputs ===============')
         origin = input('Por favor ingrese el nombre de la ciudad de origen: ')
         origin_data = controller.defineCity(catalog, origin)
         if origin_data == None:
@@ -167,12 +168,7 @@ while True:
         else: 
             result = result[0:3]+result[len(result)-4:]
         print(result)
-
-
-
-
-
-
+        
     elif int(inputs[0]) == 6:
         pass
     elif int(inputs[0]) == 7:

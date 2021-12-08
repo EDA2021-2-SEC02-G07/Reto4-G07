@@ -68,6 +68,7 @@ def loadAirports(catalog):
     for airport in input_file:
         model.addAirport(catalog, airport)
         model.addIATA(catalog, airport)
+        model.addIATACoordinates(catalog, airport)
     return catalog
     
 def loadRoutes(catalog):
