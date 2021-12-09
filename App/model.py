@@ -33,6 +33,7 @@ from DISClib.ADT import orderedmap as om
 from DISClib.DataStructures import mapentry as me
 from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.Utils import error as error
 from DISClib.Algorithms.Graphs import scc
 assert cf
@@ -100,7 +101,7 @@ def addConnection(catalog, Departure, Destination, distance_km):
     """
     edge = gr.getEdge(catalog['directedAirports'], Departure, Destination)
     if edge is None:
-        gr.addEdge(catalog['directedAirports'], Departure, Destination, distance_km)
+        gr.addEdge(catalog['directedAirports'], Departure, Destination, float(distance_km))
     
 def addCity(catalog, city):
     """
@@ -141,8 +142,8 @@ def addIATACoordinates(catalog, airport):
     Adiciona un aereopuerto al arbol RBT
     """
     Iatacode = airport['IATA']
-    latitude = airport['Latitude']
-    longitude = airport['Longitude']
+    latitude = float(airport['Latitude'])
+    longitude = float(airport['Longitude'])
     latitudes = catalog['LatitudesTree']
 
     try:
@@ -205,12 +206,11 @@ def invhav(x):
 
 def havDistance(lon1, lon2, lat1, lat2):
     r = 6371
-    x = hav(lat2-lat1)+((1-hav(lat1-lat2)-hav(lat1+lat2))*hav(long2-long1))
+    x = hav(lat2-lat1)+((1-hav(lat1-lat2)-hav(lat1+lat2))*hav(lon2-lon1))
     d = 2*r*(math.asin(x**0.5))
     return d
 
-def latitudeUpDown(latitude):
-    d = 10
+def latitudeUpDown(latitude, d):
     r = 6371
     k = invhav(math.sin(d/(2*r))**2)
     l1 = k + latitude
@@ -221,8 +221,7 @@ def latitudeUpDown(latitude):
     else: 
         return l2, l1
 
-def longitudeUpDown(longitude, latitude):
-    d = 10
+def longitudeUpDown(longitude, latitude, d):
     r = 6371
     div = (math.sin(d/(2*r))**2)/(1-hav(2*latitude))
     k = invhav(div)
@@ -251,10 +250,10 @@ def minimum(dictionary):
         
 def affected_airports(catalog, Iatacode):
     directed_graph = catalog['directedAirports']
-    affected_airpots_directed = gr.degree(directed_graph, Iatacode)
     airports_list = gr.adjacents(directed_graph, Iatacode)
     airports_list2 = catalog['InRoutes'][Iatacode]
-    return (airports_list, airports_list2, affected_airpots_directed)
+
+    return (airports_list, airports_list2)
 
 
 
@@ -290,6 +289,60 @@ def connected_airports(catalog):
     return connected_airports1, connected_airports2
 
 
+def search_near_airports(catalog, city, d):
+    latitudes = catalog['LatitudesTree']
+    near_airports = []
+    latitude = float(city['latitude']) * 0.0174533
+    longitude = float(city['longitude']) * 0.0174533
+    latup,latdown = latitudeUpDown(latitude, d)
+    lonup,londown = longitudeUpDown(longitude, latitude, d)
+    latitudes_list = om.values(latitudes, latdown/0.0174533, latup/0.0174533)
+    list_size = lt.size(latitudes_list)
+
+    for i in range(1, list_size + 1):
+        longitudes = lt.getElement(latitudes_list, i)
+        longitudes_list = om.values(longitudes, londown/0.0174533, lonup/0.0174533)
+        longitudes_size = lt.size(longitudes_list)
+        for j in range(1, longitudes_size + 1):
+            airport = lt.getElement(longitudes_list, j)
+            near_airports.append(airport)    
+    if len(near_airports) > 0:
+        return near_airports
+
+    else: 
+        return search_near_airports(catalog, city, d+10)
+
+
+def define_near_airport(catalog, city):
+    city_latitude = float(city['latitude'])*0.0174533
+    city_longitude = float(city['longitude'])*0.0174533
+    selected_airport = None
+    mindist = -1
+    airports = search_near_airports(catalog, city, 10)
+    if len(airports) == 1: 
+        selected_airport = airports[0]
+        airport = selected_airport
+        airport_data = me.getValue(mp.get(catalog['IATAS'], airport)) 
+        airport_latitude = float(airport_data['latitude'])*0.0174533
+        airport_longitude = float(airport_data['longitude'])*0.0174533
+        distance = havDistance(airport_longitude, city_longitude, airport_latitude, city_latitude)
+        mindist = distance
+    else: 
+        for airport in airports:
+            airport_data = me.getValue(mp.get(catalog['IATAS'], airport)) 
+            airport_latitude = float(airport_data['latitude'])*0.0174533
+            airport_longitude = float(airport_data['longitude'])*0.0174533
+            distance = havDistance(airport_longitude, city_longitude, airport_latitude, city_latitude)
+            if selected_airport == None or distance < mindist:
+                selected_airport = airport
+                mindist = distance
+    return selected_airport, mindist
+
+
+def minCostRoute(catalog, airport1, airport2):
+    routes = djk.Dijkstra(catalog['directedAirports'], airport1)
+    
+    return djk.pathTo(routes, airport2)
 
 
 # Funciones de comparación

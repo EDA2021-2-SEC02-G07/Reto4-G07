@@ -122,6 +122,16 @@ def defineCity(catalog, city_name):
             city = model.lt.getElement(cities_list, number)
     return city
 
+def near_airport(catalog, city):
+    
+    return model.define_near_airport(catalog, city)
+
+def minimumCostRoute(catalog, airport1, airport2):
+     return model.minCostRoute(catalog, airport1, airport2)
+
+
+
+
 def affected_airports(catalog, Iatacode):
     data = model.affected_airports(catalog, Iatacode)
     return data

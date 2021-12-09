@@ -27,12 +27,14 @@ import controller
 from DISClib.ADT import list as lt
 from DISClib.ADT.graph import gr
 from DISClib.ADT import map as mp
+from DISClib.ADT import stack
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import prim
 assert cf
 import time
-
+default_limit = 1000
+sys.setrecursionlimit(default_limit*10)
 
 """
 La vista se encarga de la interacción con el usuario
@@ -133,15 +135,68 @@ while True:
         origin_data = controller.defineCity(catalog, origin)
         if origin_data == None:
             print('La ciudad ingresada no registra')
-            pass
+            continue
         destination = input('Por favor ingrese el nombre de la ciudad de destino: ')
         destination_data = controller.defineCity(catalog, destination)
         if destination_data == None:
             print('La ciudad ingresada no registra')
-            pass
+            continue
 
-        pass
+        
+        origin_airport = controller.near_airport(catalog, origin_data)
+        destination_airport = controller.near_airport(catalog, destination_data)
+        origin_dist = origin_airport[1]
+        destination_dist = destination_airport[1]
+        origin_airport = origin_airport[0]
+        destination_airport = destination_airport[0]
+        path = controller.minimumCostRoute(catalog, origin_airport, destination_airport)
+        if path == None:
+            print('No hay ruta entre las dos ciudades seleccionadas')
+            continue
 
+
+
+        table1 = [['IATA', 'Nombre', 'País', 'Ciudad']]
+        origin_airport_info = me.getValue(mp.get(catalog['IATAS'], origin_airport))
+        table1.append([origin_airport, origin_airport_info['name'],origin_airport_info['country'],origin_airport_info['city']])
+        table2 = [['IATA', 'Nombre', 'País', 'Ciudad']]
+        destination_airport_info = me.getValue(mp.get(catalog['IATAS'], destination_airport))
+        table2.append([destination_airport, destination_airport_info['name'],destination_airport_info['country'],destination_airport_info['city']])        
+        table3 = [['Origen', 'Destino', 'Distancia (km)']]
+        table4 = [['IATA', 'Nombre', 'País', 'Ciudad']]
+        aereopuertos = []
+        distance = origin_dist+destination_dist
+        while (not stack.isEmpty(path)):
+            triproute = stack.pop(path)
+            table3.append([triproute['vertexA'], triproute['vertexB'],triproute['weight']])
+            aereopuertos.append(triproute['vertexA'])
+            aereopuertos.append(triproute['vertexB'])
+            distance += float(triproute['weight'])
+        result = []
+        for aereopuerto in aereopuertos:
+            if aereopuerto not in result:
+                result.append(aereopuerto)
+        for iata in result:
+            airport_info = me.getValue(mp.get(catalog['IATAS'], iata))
+            table4.append([iata, airport_info['name'],airport_info['country'],airport_info['city']])
+                
+        print('=============== Req 2. answer ===============')
+        print('El viaje cubre una distancia de:', round(distance,3), 'Km' )
+        print('Para ir desde', origin, 'hasta', destination, 'se debe trasladar desde el aereopuerto:')
+        print(tabulate(table1 , headers='firstrow', tablefmt='fancy_grid'))
+
+        print('Hasta el aereopuerto:')
+        print(tabulate(table2 , headers='firstrow', tablefmt='fancy_grid'))
+
+        print('Los trayectos que debe seguir son: ')
+        print(tabulate(table3 , headers='firstrow', tablefmt='fancy_grid'))
+
+        print('En la tabla se brinda información de las paradas: ')
+        print(tabulate(table4 , headers='firstrow', tablefmt='fancy_grid'))
+        
+
+
+        
     
     elif int(inputs[0]) == 4:
         pass
@@ -151,7 +206,6 @@ while True:
         affected_airports = []
         list1 = data[0]
         list2 = data[1]
-        total = data[2]
         for i in range(1,lt.size(list1)+1):
             airport = lt.getElement(list1, i)
             affected_airports.append(airport)
@@ -167,7 +221,14 @@ while True:
             pass
         else: 
             result = result[0:3]+result[len(result)-4:]
-        print(result)
+        
+        tablita = [['IATA', 'Nombre', 'País', 'Ciudad']]
+        for iata in result:
+            airport_info = me.getValue(mp.get(catalog['IATAS'], iata))
+            tablita.append([iata, airport_info['name'],airport_info['country'],airport_info['city']])
+        
+        print('Los primeros 3 y los últimos 3 aereopuertos afectados son: ')
+        print(tabulate(tablita , headers='firstrow', tablefmt='fancy_grid'))
         
     elif int(inputs[0]) == 6:
         pass
