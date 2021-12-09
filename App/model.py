@@ -33,6 +33,7 @@ from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.Utils import error as error
 assert cf
+from DISClib.Algorithms.Sorting import mergesort as merge
 
 """
 Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
@@ -109,7 +110,11 @@ def addConnection(catalog, Departure, Destination, distance_km):
     edge = gr.getEdge(catalog['directedAirports'], Departure, Destination)
     if edge is None:
         gr.addEdge(catalog['directedAirports'], Departure, Destination, distance_km)
-    
+    else:
+        outdegreeList = me.getValue(mp.get(catalog['directedAirports']['vertices'], edge['vertexA']))
+        outdegreeList['size'] += 1
+        indegree = me.getValue(mp.get(catalog['directedAirports']['indegree'], edge['vertexB'])) 
+        mp.put(catalog['directedAirports']['indegree'], edge['vertexB'], indegree + 1)
 def addCity(catalog, city):
     """
     Adiciona una ciudad al mapa de ciudades
@@ -221,7 +226,7 @@ def affected_airports(catalog, Iatacode):
 
 
 
-def search_connected_airports(vertices, graph):
+def search_connected_airports(vertices, graph,catalog):
     '''
     Busca los aereopuertos más interconectados
     '''
@@ -229,8 +234,8 @@ def search_connected_airports(vertices, graph):
     min_connections = -1
     for i in range(1, lt.size(vertices)+1):
         airport = lt.getElement(vertices, i)
-        connections = gr.degree(graph, airport)
-        if len(selected_airports) < 10:
+        connections = vertexDegree(graph, airport) 
+        if len(selected_airports) < 5:
             selected_airports[airport] = connections
             min_connections, min_key = minimum(selected_airports)
         elif connections > min_connections:
@@ -238,19 +243,24 @@ def search_connected_airports(vertices, graph):
             selected_airports[airport] = connections
             min_connections, min_key = minimum(selected_airports)
 
-    return selected_airports        
+    AirportsList = lt.newList('ARRAY_LIST')      
+    for x in selected_airports:
+        lt.addLast(AirportsList, (x, selected_airports[x]))
+    orderedAirports = sortAirports(AirportsList, compareAirportsDegree)
+    return orderedAirports        
 
 def connected_airports(catalog):
     '''
     Define los aereopuertos conectados de los dos grafos
     '''
     airports1 = catalog['directedAirports']
-    airports2 = catalog['notDirectedAirports']
     airports1_vertices = gr.vertices(airports1)
-    airports2_vertices = gr.vertices(airports2)
-    connected_airports1 = search_connected_airports(airports1_vertices, airports1)
-    connected_airports2 = search_connected_airports(airports2_vertices, airports2)
-    return connected_airports1, connected_airports2
+    connected_airports1 = search_connected_airports(airports1_vertices, airports1, catalog)
+    return connected_airports1
+
+   
+def vertexDegree(graph, vertex):
+    return gr.degree(graph, vertex) + gr.indegree(graph, vertex)
 
 # Funciones de comparación
 
@@ -266,4 +276,16 @@ def compareAirports(Airport, keyvalueAirport):
     else:
         return -1
 
+def compareAirportsDegree(Airport1, Airport2):
+    degree1 = Airport1[1]
+    degree2 = Airport2[1]
+    return degree1  > degree2 
+    
 # Funciones de ordenamiento
+def sortAirports(list, cmpfunction):
+    size=lt.size(list)
+    sub_list = lt.subList(list, 1, size)
+    sub_list = sub_list.copy()
+    sorted_list = merge.sort(sub_list, cmpfunction)      
+    
+    return sorted_list

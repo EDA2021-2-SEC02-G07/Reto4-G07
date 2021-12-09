@@ -33,7 +33,7 @@ from DISClib.Algorithms.Graphs import prim
 from DISClib.Algorithms.Graphs import dfs
 assert cf
 import time
-
+sys.setrecursionlimit(50000)
 
 """
 La vista se encarga de la interacción con el usuario
@@ -119,33 +119,25 @@ while True:
         print('La primera y última ciudad cargada son:')
         print(tabulate(citiesTable , headers='firstrow', tablefmt='fancy_grid'))
         print()
+
     elif int(inputs[0]) == 1:
         print('=============== Req 1. answer ===============')
-        tabla1 = [['Iata', 'Conexiones', 'Nombre','Ciudad','País']]
-        tabla2 = [['Iata', 'Conexiones', 'Nombre','Ciudad','País']]
-        interconnected_airports = catalog['connected_airports']
-        airports_directed = interconnected_airports[0]
-        airports_no_directed = interconnected_airports[1]
+        tabla1 = [['Iata', 'Conexiones', 'inbound', 'outbound', 'Nombre','Ciudad','País']]
+        airports_directed = catalog['connected_airports']
         airports_map = catalog['IATAS']
-        for key in  airports_directed:
-            airport = me.getValue(mp.get(airports_map, key))
-            line = [key, airports_directed[key], airport['name'], airport['city'], airport['country'] ]
+        for key in  lt.iterator(airports_directed):
+            airport = me.getValue(mp.get(airports_map, key[0]))
+            line = [key[0], key[1], gr.indegree(catalog['directedAirports'], key[0]), gr.degree(catalog['directedAirports'],key[0]),
+             airport['name'], airport['city'], airport['country'] ]
             tabla1.append(line)
-        for key in  airports_no_directed:
-            airport = me.getValue(mp.get(airports_map, key))
-            line = [key, airports_no_directed[key], airport['name'], airport['city'], airport['country'] ]
-            tabla2.append(line)
-        
-        print('Los 10 aereopuertos que son los mayores puntos de interconexión aerea (grafo dirigido) son:')
+        print('Los 5 aereopuertos que son los mayores puntos de interconexión aerea (grafo dirigido) son:')
         print(tabulate(tabla1 , headers='firstrow', tablefmt='fancy_grid'))
-        print('Los 10 aereopuertos que son los mayores puntos de interconexión aerea (grafo no dirigido) son:')
-        print(tabulate(tabla2 , headers='firstrow', tablefmt='fancy_grid'))
 
     elif int(inputs[0]) == 2:
         try:
             graph = catalog['directedAirports']
             comps = catalog['SCC']
-            print('=============== Req 2. inputs ===============')
+
             a1 = input('Inserte el código IATA del aeropuerto 1: ')
             a2 = input('Inserte el código IATA del aeropuerto 2: ')
             print()
@@ -175,15 +167,27 @@ while True:
     elif int(inputs[0]) == 4:
         try:
             mst = catalog['MST']
-            print('=============== Req 2. inputs ===============')
-            city = input('Inserte el nombre de la ciudad de origen: ')
+            print('=============== Req 4. inputs ===============')
+            IATa = input('Inserte el código IATA del aeropuerto de inicio: ')
             miles = float(input('Inserte el número de millas acumuladas por el viajero: '))
             km = miles *1.6
+
             print()
-            print('=============== Req 2. answer ===============')
-            controller.findLargerRoute(catalog, km, 'Dubai')
-            print('Número de componentes fuertemente conectados:', )
-            print('¿Están el aeropuerto con código "' + a1 + '" y el aeropuerto con código "' + a2 + '" fuertemente conectados?:', conected)
+            print('=============== Req 4. answer ===============')
+            table, cost = controller.findLargerRoute(catalog, km, IATa)
+            print('  - Número de posibles aeropuertos:', gr.numVertices(mst))
+            print('  - Suma de la distancia de viaje entre aeropuertos:', round(mst['cost'],2), '(km)')
+            print('  - Millas disponibles del pasajero:', miles * 1.6, '(km)')
+
+            print()
+            print("+++ Posible ruta más larga que pasa por el aeropuerto '" + IATa + "'")
+            print('  - Distancia del posible camino más largo:', round(cost,2), '(km)')
+            print('  - Detalles del camino posible más largo:')
+            print(tabulate(table , headers='firstrow', tablefmt='fancy_grid'))
+
+            print('-----')
+            print('El pasajero necesita', (cost*2)/1.6 - 19850, 'millas para poder completar el recorrido más largo posible.')
+            print('-----')
         except:
             print('Inserte valores válidos compa.')
         

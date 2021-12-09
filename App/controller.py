@@ -30,6 +30,7 @@ from DISClib.DataStructures import mapentry as me
 from DISClib.ADT import list as lt
 from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Graphs import dfs
+from DISClib.ADT import queue as qe
 """
 El controlador se encarga de mediar entre la vista y el modelo.
 """
@@ -64,7 +65,7 @@ def loadAirports(catalog):
     """
     Carga los datos de los aeropuertos.
     """
-    airportsfile = 'airports-utf8-small.csv'
+    airportsfile = 'airports-utf8-large.csv'
     airportsfile = cf.data_dir + airportsfile
     input_file = csv.DictReader(open(airportsfile, encoding="utf-8"),
                                 delimiter=",")
@@ -83,7 +84,7 @@ def loadRoutes(catalog):
     """
     Carga los datos de las rutas.
     """
-    routesfile = 'routes-utf8-small.csv'
+    routesfile = 'routes-utf8-large.csv'
     routesfile = cf.data_dir + routesfile
     input_file = csv.DictReader(open(routesfile, encoding="utf-8"),
                                 delimiter=",")
@@ -124,10 +125,13 @@ def loadMST(catalog):
     graph = catalog['notDirectedAirports']
     MST = prim.PrimMST(graph)
     edgesList = mp.valueSet(MST['edgeTo'])
+    mstCost = 0
     for edge in lt.iterator(edgesList):
         model.addAirportToMST(catalog, edge['vertexA'])
         model.addAirportToMST(catalog, edge['vertexB'])
         model.addConnectionToMST(catalog, edge['vertexA'], edge['vertexB'], edge['weight'])
+        mstCost += edge['weight']
+    catalog['MST']['cost'] = mstCost
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
@@ -149,27 +153,22 @@ def defineCity(catalog, city_name):
             city = model.lt.getElement(cities_list, number)
     return city
 
-def findLargerRoute(catalog, km, city):
-    airports = me.getValue(mp.get(catalog['IATASbyCity'], city))
+def findLargerRoute(catalog, km, IATA):
     mst = catalog['MST']
-    ramasMayores = []
-    for IATA in lt.iterator(airports):
-        if gr.containsVertex(mst, IATA):
-            adjacents = gr.adjacentEdges(mst, IATA)
-            R = []
-            for edge in lt.iterator(adjacents):
-                r = []
-                r.append(edge)
-                route = appendEdge(r, edge, mst, IATA, adjacents)
-                lt.removeFirst(adjacents)
-                if len(r) > len(R):
-                    R = r
-                
+    vertices = dfs.DepthFirstSearch(mst, IATA)
+    partitionCost = 0
+    partition = vertices['visited']
+    partitionTable = [['Departure', 'Destination', 'distance_km']]
+    for vertex in lt.iterator(mp.keySet(partition)):
+        vertexB = me.getValue(mp.get(partition, vertex))['edgeTo']
+        if vertexB != None:
+            edge = gr.getEdge(mst, vertex, vertexB)
+            partitionCost += edge['weight']
+            partitionTable.append([vertex, vertexB, edge['weight']])
 
-
-                
-        else: return False
-
+    
+    return partitionTable, partitionCost
+    
 def appendEdge(list, edge, mst, vertex, adjacents):
     n = False
     next = edge['vertexB']
@@ -190,6 +189,7 @@ def appendEdge(list, edge, mst, vertex, adjacents):
                 lt.removeFirst(adjs)
             
     return R
+
 def affected_airports(catalog, Iatacode):
     data = model.affected_airports(catalog, Iatacode)
     return data
