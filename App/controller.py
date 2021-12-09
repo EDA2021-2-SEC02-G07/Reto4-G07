@@ -65,7 +65,7 @@ def loadAirports(catalog):
     """
     Carga los datos de los aeropuertos.
     """
-    airportsfile = 'airports-utf8-large.csv'
+    airportsfile = 'airports-utf8-5pct.csv'
     airportsfile = cf.data_dir + airportsfile
     input_file = csv.DictReader(open(airportsfile, encoding="utf-8"),
                                 delimiter=",")
@@ -86,7 +86,7 @@ def loadRoutes(catalog):
     """
     Carga los datos de las rutas.
     """
-    routesfile = 'routes-utf8-large.csv'
+    routesfile = 'routes-utf8-5pct.csv'
     routesfile = cf.data_dir + routesfile
     input_file = csv.DictReader(open(routesfile, encoding="utf-8"),
                                 delimiter=",")

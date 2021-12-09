@@ -74,7 +74,12 @@ while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 0:
+        start_time = time.process_time()
         catalog = option0()
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)
+        print('La carga duró', elapsed_time_mseg, 'segundos')
+
         numVertex = gr.numVertices(catalog['directedAirports'])
         numEdges= gr.numEdges(catalog['directedAirports'])
         print('=== Aeropuertos-Rutas Grafo Dirigido===')
@@ -124,6 +129,7 @@ while True:
 
     elif int(inputs[0]) == 1:
         print('=============== Req 1. answer ===============')
+        start_time = time.process_time()
         tabla1 = [['Iata', 'Conexiones', 'inbound', 'outbound', 'Nombre','Ciudad','País']]
         airports_directed = catalog['connected_airports']
         airports_map = catalog['IATAS']
@@ -132,6 +138,9 @@ while True:
             line = [key[0], key[1], gr.indegree(catalog['directedAirports'], key[0]), gr.degree(catalog['directedAirports'],key[0]),
              airport['name'], airport['city'], airport['country'] ]
             tabla1.append(line)
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)
+        print('La carga duró', elapsed_time_mseg, 'segundos')
         print('Los 5 aereopuertos que son los mayores puntos de interconexión aerea (grafo dirigido) son:')
         print(tabulate(tabla1 , headers='firstrow', tablefmt='fancy_grid'))
 
@@ -144,8 +153,13 @@ while True:
             a2 = input('Inserte el código IATA del aeropuerto 2: ')
             print()
             print('=============== Req 2. answer ===============')
+            start_time = time.process_time()
             conected = scc.stronglyConnected(comps, a1, a2)
+            stop_time = time.process_time()
+            elapsed_time_mseg = (stop_time - start_time)
+            print('La carga duró', elapsed_time_mseg, 'segundos')
             print('Número de componentes fuertemente conectados:', scc.connectedComponents(comps))
+
             print('¿Están el aeropuerto con código "' + a1 + '" y el aeropuerto con código "' + a2 + '" fuertemente conectados?:', conected)
         except:
             print('Inserte valores válidos compa.') #XD
@@ -165,7 +179,7 @@ while True:
             print('La ciudad ingresada no registra')
             continue
 
-        
+        start_time = time.process_time()
         origin_airport = controller.near_airport(catalog, origin_data)
         destination_airport = controller.near_airport(catalog, destination_data)
         origin_dist = origin_airport[1]
@@ -173,6 +187,10 @@ while True:
         origin_airport = origin_airport[0]
         destination_airport = destination_airport[0]
         path = controller.minimumCostRoute(catalog, origin_airport, destination_airport)
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)
+        print('La carga duró', elapsed_time_mseg, 'segundos')
+
         if path == None:
             print('No hay ruta entre las dos ciudades seleccionadas')
             continue
@@ -201,7 +219,7 @@ while True:
             airport_info = me.getValue(mp.get(catalog['IATAS'], iata))
             table4.append([iata, airport_info['name'],airport_info['country'],airport_info['city']])
                 
-        print('=============== Req 2. answer ===============')
+        print('=============== Req 3. answer ===============')
         print('El viaje cubre una distancia de:', round(distance,3), 'Km' )
         print('Para ir desde', origin, 'hasta', destination, 'se debe trasladar desde el aereopuerto:')
         print(tabulate(table1 , headers='firstrow', tablefmt='fancy_grid'))
@@ -226,7 +244,12 @@ while True:
 
             print()
             print('=============== Req 4. answer ===============')
+
+            start_time = time.process_time()
             table, cost = controller.findLargerRoute(catalog, km, IATa)
+            stop_time = time.process_time()
+            elapsed_time_mseg = (stop_time - start_time)
+            print('La carga duró', elapsed_time_mseg, 'segundos')
             print('  - Número de posibles aeropuertos:', gr.numVertices(mst))
             print('  - Suma de la distancia de viaje entre aeropuertos:', round(mst['cost'],2), '(km)')
             print('  - Millas disponibles del pasajero:', miles * 1.6, '(km)')
@@ -244,8 +267,12 @@ while True:
             print('Inserte valores válidos compa.')
         
     elif int(inputs[0]) == 5: 
+        print('=============== Req 5. inputs ===============')
         Iatacode = input('Ingrese el código IATA del aereopuerto que está cerrado: ')
+        start_time = time.process_time()
         data = controller.affected_airports(catalog, Iatacode)
+        
+
         affected_airports = []
         list1 = data[0]
         list2 = data[1]
@@ -259,6 +286,10 @@ while True:
         for airport in affected_airports:
             if airport not in result:
                 result.append(airport)
+        print('=============== Req 5. answer ===============')
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)
+        print('La carga duró', elapsed_time_mseg, 'segundos')
         print('El cierre afecta a', len(result), 'aereopuerto(s)')
         if len(result) <= 6:
             pass
