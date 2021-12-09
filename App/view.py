@@ -34,6 +34,8 @@ from DISClib.Algorithms.Graphs import prim
 from DISClib.Algorithms.Graphs import dfs
 assert cf
 import time
+import folium
+import webbrowser
 default_limit = 1000
 sys.setrecursionlimit(default_limit*10)
 
@@ -53,7 +55,6 @@ def printMenu():
     print("4- : Utilizar las millas de viajero")
     print("5- : Cuantificar el efecto de un aeropuerto cerrado")
     print("6- : Comparar con servicio WEB externo")
-    print("7- : Visualizar gráficamente los requerimientos")
 catalog = None
 
 def option0():
@@ -128,21 +129,47 @@ while True:
         print()
 
     elif int(inputs[0]) == 1:
-        print('=============== Req 1. answer ===============')
-        start_time = time.process_time()
-        tabla1 = [['Iata', 'Conexiones', 'inbound', 'outbound', 'Nombre','Ciudad','País']]
-        airports_directed = catalog['connected_airports']
-        airports_map = catalog['IATAS']
-        for key in  lt.iterator(airports_directed):
-            airport = me.getValue(mp.get(airports_map, key[0]))
-            line = [key[0], key[1], gr.indegree(catalog['directedAirports'], key[0]), gr.degree(catalog['directedAirports'],key[0]),
-             airport['name'], airport['city'], airport['country'] ]
-            tabla1.append(line)
-        stop_time = time.process_time()
-        elapsed_time_mseg = (stop_time - start_time)
-        print('La carga duró', elapsed_time_mseg, 'segundos')
-        print('Los 5 aereopuertos que son los mayores puntos de interconexión aerea (grafo dirigido) son:')
-        print(tabulate(tabla1 , headers='firstrow', tablefmt='fancy_grid'))
+        try:
+            print('=============== Req 1. answer ===============')
+            start_time = time.process_time()
+            tabla1 = [['Iata', 'Conexiones', 'inbound', 'outbound', 'Nombre','Ciudad','País']]
+            airports_directed = catalog['connected_airports']
+            airports_map = catalog['IATAS']
+            iatas = {}
+            lat = 0
+            lg = 0
+            for key in  lt.iterator(airports_directed):
+                iatas[key[0]] = me.getValue(mp.get(catalog['IATAS'], key[0]))
+                lat += float(iatas[key[0]]['latitude'])
+                lg += float(iatas[key[0]]['longitude'])
+                airport = me.getValue(mp.get(airports_map, key[0]))
+                line = [key[0], key[1], gr.indegree(catalog['directedAirports'], key[0]), gr.degree(catalog['directedAirports'],key[0]),
+                airport['name'], airport['city'], airport['country'] ]
+                tabla1.append(line)
+            stop_time = time.process_time()
+            elapsed_time_mseg = (stop_time - start_time)
+            print('La carga duró', elapsed_time_mseg, 'segundos')
+            print('Los 5 aereopuertos que son los mayores puntos de interconexión aerea (grafo dirigido) son:')
+            print(tabulate(tabla1 , headers='firstrow', tablefmt='fancy_grid'))
+
+
+            print()
+            print('¿Desea visualizar los aeropuertos relacionados con la consulta en un mapa?')
+            print('1. Sí.')
+            print('2. No.')
+            mapeo = input('Ingrese la opción que desee: ')
+            if mapeo == '1':
+                mi_mapa = folium.Map(location=(lat/5,lg/5), zoom_start=2)
+                for iata in iatas:
+                    latitude = float(iatas[iata]['latitude'])
+                    longitude = float(iatas[iata]['longitude'])
+                    marcador = folium.Marker(location=(latitude, longitude))
+                    marcador.add_to(mi_mapa)
+                    
+                mi_mapa.save("mapa.html")
+                webbrowser.open_new('mapa.html')
+        except:
+            print('Inserte valores válidos compa.') 
 
     elif int(inputs[0]) == 2:
         try:
@@ -161,77 +188,127 @@ while True:
             print('Número de componentes fuertemente conectados:', scc.connectedComponents(comps))
 
             print('¿Están el aeropuerto con código "' + a1 + '" y el aeropuerto con código "' + a2 + '" fuertemente conectados?:', conected)
+            airp1 = me.getValue(mp.get(catalog['IATAS'], a1))
+            airp2 = me.getValue(mp.get(catalog['IATAS'], a2))
+            iatas = {a1: airp1, a2: airp2}
+            lati = float(airp1['latitude']) + float(airp2['latitude'])
+            lang = float(airp1['longitude']) + float(airp2['longitude'])
+
+            print()
+            print('¿Desea visualizar los aeropuertos relacionados con la consulta en un mapa?')
+            print('1. Sí.')
+            print('2. No.')
+            mapeo = input('Ingrese la opción que desee: ')
+            if mapeo == '1':
+                mi_mapa = folium.Map(location=(lati/2,lang/2), zoom_start=2)
+                for iata in iatas:
+                    latitude = float(iatas[iata]['latitude'])
+                    longitude = float(iatas[iata]['longitude'])
+                    marcador = folium.Marker(location=(latitude, longitude))
+                    marcador.add_to(mi_mapa)
+                
+                mi_mapa.save("mapa.html")
+                webbrowser.open_new('mapa.html')
+
         except:
             print('Inserte valores válidos compa.') #XD
 
 
 
     elif int(inputs[0]) == 3:
-        print('=============== Req 3. inputs ===============')
-        origin = input('Por favor ingrese el nombre de la ciudad de origen: ')
-        origin_data = controller.defineCity(catalog, origin)
-        if origin_data == None:
-            print('La ciudad ingresada no registra')
-            continue
-        destination = input('Por favor ingrese el nombre de la ciudad de destino: ')
-        destination_data = controller.defineCity(catalog, destination)
-        if destination_data == None:
-            print('La ciudad ingresada no registra')
-            continue
+        try:
+            print('=============== Req 3. inputs ===============')
+            origin = input('Por favor ingrese el nombre de la ciudad de origen: ')
+            origin_data = controller.defineCity(catalog, origin)
+            if origin_data == None:
+                print('La ciudad ingresada no registra')
+                continue
+            destination = input('Por favor ingrese el nombre de la ciudad de destino: ')
+            destination_data = controller.defineCity(catalog, destination)
+            if destination_data == None:
+                print('La ciudad ingresada no registra')
+                continue
 
-        start_time = time.process_time()
-        origin_airport = controller.near_airport(catalog, origin_data)
-        destination_airport = controller.near_airport(catalog, destination_data)
-        origin_dist = origin_airport[1]
-        destination_dist = destination_airport[1]
-        origin_airport = origin_airport[0]
-        destination_airport = destination_airport[0]
-        path = controller.minimumCostRoute(catalog, origin_airport, destination_airport)
-        stop_time = time.process_time()
-        elapsed_time_mseg = (stop_time - start_time)
-        print('La carga duró', elapsed_time_mseg, 'segundos')
+            start_time = time.process_time()
+            origin_airport = controller.near_airport(catalog, origin_data)
+            destination_airport = controller.near_airport(catalog, destination_data)
+            origin_dist = origin_airport[1]
+            destination_dist = destination_airport[1]
+            origin_airport = origin_airport[0]
+            destination_airport = destination_airport[0]
+            path = controller.minimumCostRoute(catalog, origin_airport, destination_airport)
+            stop_time = time.process_time()
+            elapsed_time_mseg = (stop_time - start_time)
+            print('La carga duró', elapsed_time_mseg, 'segundos')
 
-        if path == None:
-            print('No hay ruta entre las dos ciudades seleccionadas')
-            continue
+            if path == None:
+                print('No hay ruta entre las dos ciudades seleccionadas')
+                continue
 
-        table1 = [['IATA', 'Nombre', 'País', 'Ciudad']]
-        origin_airport_info = me.getValue(mp.get(catalog['IATAS'], origin_airport))
-        table1.append([origin_airport, origin_airport_info['name'],origin_airport_info['country'],origin_airport_info['city']])
-        table2 = [['IATA', 'Nombre', 'País', 'Ciudad']]
-        destination_airport_info = me.getValue(mp.get(catalog['IATAS'], destination_airport))
-        table2.append([destination_airport, destination_airport_info['name'],destination_airport_info['country'],destination_airport_info['city']])        
-        table3 = [['Origen', 'Destino', 'Distancia (km)']]
-        table4 = [['IATA', 'Nombre', 'País', 'Ciudad']]
-        aereopuertos = []
-        distance = origin_dist+destination_dist
-        while (not stack.isEmpty(path)):
-            triproute = stack.pop(path)
-            table3.append([triproute['vertexA'], triproute['vertexB'],triproute['weight']])
-            aereopuertos.append(triproute['vertexA'])
-            aereopuertos.append(triproute['vertexB'])
-            distance += float(triproute['weight'])
-        result = []
-        for aereopuerto in aereopuertos:
-            if aereopuerto not in result:
-                result.append(aereopuerto)
-        for iata in result:
-            airport_info = me.getValue(mp.get(catalog['IATAS'], iata))
-            table4.append([iata, airport_info['name'],airport_info['country'],airport_info['city']])
+            table1 = [['IATA', 'Nombre', 'País', 'Ciudad']]
+            origin_airport_info = me.getValue(mp.get(catalog['IATAS'], origin_airport))
+            table1.append([origin_airport, origin_airport_info['name'],origin_airport_info['country'],origin_airport_info['city']])
+            table2 = [['IATA', 'Nombre', 'País', 'Ciudad']]
+            destination_airport_info = me.getValue(mp.get(catalog['IATAS'], destination_airport))
+            table2.append([destination_airport, destination_airport_info['name'],destination_airport_info['country'],destination_airport_info['city']])        
+            table3 = [['Origen', 'Destino', 'Distancia (km)']]
+            table4 = [['IATA', 'Nombre', 'País', 'Ciudad']]
+            aereopuertos = []
+            iatas = {}
+            lat = 0
+            nlat = 0
+            lg = 0
+            distance = origin_dist+destination_dist
+            while (not stack.isEmpty(path)):
+                triproute = stack.pop(path)
+                table3.append([triproute['vertexA'], triproute['vertexB'],triproute['weight']])
+                aereopuertos.append(triproute['vertexA'])
+                aereopuertos.append(triproute['vertexB'])
+                distance += float(triproute['weight'])
                 
-        print('=============== Req 3. answer ===============')
-        print('El viaje cubre una distancia de:', round(distance,3), 'Km' )
-        print('Para ir desde', origin, 'hasta', destination, 'se debe trasladar desde el aereopuerto:')
-        print(tabulate(table1 , headers='firstrow', tablefmt='fancy_grid'))
+            result = []
+            for aereopuerto in aereopuertos:
+                iatas[aereopuerto] = me.getValue(mp.get(catalog['IATAS'], aereopuerto))
+                lat += float(iatas[aereopuerto]['latitude'])
+                lg += float(iatas[aereopuerto]['longitude'])
+                nlat +=1
+                if aereopuerto not in result:
+                    result.append(aereopuerto)
+            for iata in result:
+                airport_info = me.getValue(mp.get(catalog['IATAS'], iata))
+                table4.append([iata, airport_info['name'],airport_info['country'],airport_info['city']])
+                    
+            print('=============== Req 3. answer ===============')
+            print('El viaje cubre una distancia de:', round(distance,3), 'Km' )
+            print('Para ir desde', origin, 'hasta', destination, 'se debe trasladar desde el aereopuerto:')
+            print(tabulate(table1 , headers='firstrow', tablefmt='fancy_grid'))
 
-        print('Hasta el aereopuerto:')
-        print(tabulate(table2 , headers='firstrow', tablefmt='fancy_grid'))
+            print('Hasta el aereopuerto:')
+            print(tabulate(table2 , headers='firstrow', tablefmt='fancy_grid'))
 
-        print('Los trayectos que debe seguir son: ')
-        print(tabulate(table3 , headers='firstrow', tablefmt='fancy_grid'))
+            print('Los trayectos que debe seguir son: ')
+            print(tabulate(table3 , headers='firstrow', tablefmt='fancy_grid'))
 
-        print('En la tabla se brinda información de las paradas: ')
-        print(tabulate(table4 , headers='firstrow', tablefmt='fancy_grid'))
+            print('En la tabla se brinda información de las paradas: ')
+            print(tabulate(table4 , headers='firstrow', tablefmt='fancy_grid'))
+            
+            print()
+            print('¿Desea visualizar los aeropuertos relacionados con la consulta en un mapa?')
+            print('1. Sí.')
+            print('2. No.')
+            mapeo = input('Ingrese la opción que desee: ')
+            if mapeo == '1':
+                mi_mapa = folium.Map(location=(lat/nlat,lg/nlat), zoom_start=2)
+                for iata in iatas:
+                    latitude = float(iatas[iata]['latitude'])
+                    longitude = float(iatas[iata]['longitude'])
+                    marcador = folium.Marker(location=(latitude, longitude))
+                    marcador.add_to(mi_mapa)
+                
+                mi_mapa.save("mapa.html")
+                webbrowser.open_new('mapa.html')
+        except:
+            print('Inserte valores válidos compa.') 
         
         
     elif int(inputs[0]) == 4:
@@ -246,7 +323,7 @@ while True:
             print('=============== Req 4. answer ===============')
 
             start_time = time.process_time()
-            table, cost = controller.findLargerRoute(catalog, km, IATa)
+            table, cost, iatas, lat, lg, nlat = controller.findLargerRoute(catalog, km, IATa)
             stop_time = time.process_time()
             elapsed_time_mseg = (stop_time - start_time)
             print('La carga duró', elapsed_time_mseg, 'segundos')
@@ -261,52 +338,91 @@ while True:
             print(tabulate(table , headers='firstrow', tablefmt='fancy_grid'))
 
             print('-----')
-            print('El pasajero necesita', (cost*2)/1.6 - 19850, 'millas para poder completar el recorrido más largo posible.')
+            if (cost*2)/1.6 - 19850 > 0:
+                print('El pasajero necesita', (cost*2)/1.6 - 19850, 'millas para poder completar el recorrido más largo posible.')
+            else: print('El pasajero no necesita más millas para poder hacer el recorrido.')
             print('-----')
+
+            print()
+            print('¿Desea visualizar los aeropuertos relacionados con la consulta en un mapa?')
+            print('1. Sí.')
+            print('2. No.')
+            mapeo = input('Ingrese la opción que desee: ')
+            if mapeo == '1':
+                mi_mapa = folium.Map(location=(lat/nlat,lg/nlat), zoom_start=2)
+                for iata in iatas:
+                    latitude = float(iatas[iata]['latitude'])
+                    longitude = float(iatas[iata]['longitude'])
+                    marcador = folium.Marker(location=(latitude, longitude))
+                    marcador.add_to(mi_mapa)
+                
+                mi_mapa.save("mapa.html")
+                webbrowser.open_new('mapa.html')
         except:
             print('Inserte valores válidos compa.')
         
     elif int(inputs[0]) == 5: 
-        print('=============== Req 5. inputs ===============')
-        Iatacode = input('Ingrese el código IATA del aereopuerto que está cerrado: ')
-        start_time = time.process_time()
-        data = controller.affected_airports(catalog, Iatacode)
-        
+        try:
+            print('=============== Req 5. inputs ===============')
+            Iatacode = input('Ingrese el código IATA del aereopuerto que está cerrado: ')
+            start_time = time.process_time()
+            data = controller.affected_airports(catalog, Iatacode)
+            
 
-        affected_airports = []
-        list1 = data[0]
-        list2 = data[1]
-        for i in range(1,lt.size(list1)+1):
-            airport = lt.getElement(list1, i)
-            affected_airports.append(airport)
-        for i in range(1, lt.size(list2)+1):
-            airport = lt.getElement(list2, i)
-            affected_airports.append(airport)
-        result = []
-        for airport in affected_airports:
-            if airport not in result:
-                result.append(airport)
-        print('=============== Req 5. answer ===============')
-        stop_time = time.process_time()
-        elapsed_time_mseg = (stop_time - start_time)
-        print('La carga duró', elapsed_time_mseg, 'segundos')
-        print('El cierre afecta a', len(result), 'aereopuerto(s)')
-        if len(result) <= 6:
-            pass
-        else: 
-            result = result[0:3]+result[len(result)-4:]
-        
-        tablita = [['IATA', 'Nombre', 'País', 'Ciudad']]
-        for iata in result:
-            airport_info = me.getValue(mp.get(catalog['IATAS'], iata))
-            tablita.append([iata, airport_info['name'],airport_info['country'],airport_info['city']])
-        
-        print('Los primeros 3 y los últimos 3 aereopuertos afectados son: ')
-        print(tabulate(tablita , headers='firstrow', tablefmt='fancy_grid'))
-        
+            affected_airports = []
+            list1 = data[0]
+            list2 = data[1]
+            for i in range(1,lt.size(list1)+1):
+                airport = lt.getElement(list1, i)
+                affected_airports.append(airport)
+            for i in range(1, lt.size(list2)+1):
+                airport = lt.getElement(list2, i)
+                affected_airports.append(airport)
+            result = []
+            for airport in affected_airports:
+                if airport not in result:
+                    result.append(airport)
+            print('=============== Req 5. answer ===============')
+            stop_time = time.process_time()
+            elapsed_time_mseg = (stop_time - start_time)
+            print('La carga duró', elapsed_time_mseg, 'segundos')
+            print('El cierre afecta a', len(result), 'aereopuerto(s)')
+            if len(result) <= 6:
+                pass
+            else: 
+                result = result[0:3]+result[len(result)-4:]
+            iatas = {}
+            lat = 0
+            nlat = 0
+            lg = 0
+            tablita = [['IATA', 'Nombre', 'País', 'Ciudad']]
+            for iata in result:
+                airport_info = me.getValue(mp.get(catalog['IATAS'], iata))
+                tablita.append([iata, airport_info['name'],airport_info['country'],airport_info['city']])
+                iatas[iata] = me.getValue(mp.get(catalog['IATAS'], iata))
+                lat += float(iatas[iata]['latitude'])
+                lg += float(iatas[iata]['longitude'])
+                nlat +=1
+            print('Los primeros 3 y los últimos 3 aereopuertos afectados son: ')
+            print(tabulate(tablita , headers='firstrow', tablefmt='fancy_grid'))
+            print()
+            print('¿Desea visualizar los aeropuertos relacionados con la consulta en un mapa?')
+            print('1. Sí.')
+            print('2. No.')
+            mapeo = input('Ingrese la opción que desee: ')
+            if mapeo == '1':
+                mi_mapa = folium.Map(location=(lat/nlat,lg/nlat), zoom_start=2)
+                for iata in iatas:
+                    latitude = float(iatas[iata]['latitude'])
+                    longitude = float(iatas[iata]['longitude'])
+                    marcador = folium.Marker(location=(latitude, longitude))
+                    marcador.add_to(mi_mapa)
+                
+                mi_mapa.save("mapa.html")
+                webbrowser.open_new('mapa.html')
+        except:
+            print('Inserte valores válidos compa.')
     elif int(inputs[0]) == 6:
-        pass
-    elif int(inputs[0]) == 7:
         pass
 
     else:

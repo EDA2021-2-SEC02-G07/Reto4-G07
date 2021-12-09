@@ -65,7 +65,7 @@ def loadAirports(catalog):
     """
     Carga los datos de los aeropuertos.
     """
-    airportsfile = 'airports-utf8-5pct.csv'
+    airportsfile = 'airports-utf8-large.csv'
     airportsfile = cf.data_dir + airportsfile
     input_file = csv.DictReader(open(airportsfile, encoding="utf-8"),
                                 delimiter=",")
@@ -86,7 +86,7 @@ def loadRoutes(catalog):
     """
     Carga los datos de las rutas.
     """
-    routesfile = 'routes-utf8-5pct.csv'
+    routesfile = 'routes-utf8-large.csv'
     routesfile = cf.data_dir + routesfile
     input_file = csv.DictReader(open(routesfile, encoding="utf-8"),
                                 delimiter=",")
@@ -161,15 +161,23 @@ def findLargerRoute(catalog, km, IATA):
     partitionCost = 0
     partition = vertices['visited']
     partitionTable = [['Departure', 'Destination', 'distance_km']]
+    iatas = {}
+    lat = 0
+    nlat = 0
+    lg = 0
     for vertex in lt.iterator(mp.keySet(partition)):
         vertexB = me.getValue(mp.get(partition, vertex))['edgeTo']
         if vertexB != None:
             edge = gr.getEdge(mst, vertex, vertexB)
             partitionCost += edge['weight']
             partitionTable.append([vertex, vertexB, edge['weight']])
+        iatas[vertex] = me.getValue(mp.get(catalog['IATAS'], vertex))
+        lat += float(iatas[vertex]['latitude'])
+        lg += float(iatas[vertex]['longitude'])
+        nlat +=1
 
     
-    return partitionTable, partitionCost
+    return partitionTable, partitionCost, iatas, lat, lg, nlat
     
 def appendEdge(list, edge, mst, vertex, adjacents):
     n = False
