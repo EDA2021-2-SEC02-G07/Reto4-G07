@@ -74,10 +74,12 @@ def loadAirports(catalog):
     for airport in input_file:
         model.addAirport(catalog, airport)
         model.addIATA(catalog, airport)
+        model.addIATACoordinates(catalog, airport)
         if firstAirport == True:
             firstAirport = airport
     catalog['initialAirport'] = firstAirport
     catalog['finalAirport'] = airport
+        
     return catalog
     
 def loadRoutes(catalog):
@@ -189,6 +191,16 @@ def appendEdge(list, edge, mst, vertex, adjacents):
                 lt.removeFirst(adjs)
             
     return R
+    
+def near_airport(catalog, city):
+    
+    return model.define_near_airport(catalog, city)
+
+def minimumCostRoute(catalog, airport1, airport2):
+     return model.minCostRoute(catalog, airport1, airport2)
+
+
+
 
 def affected_airports(catalog, Iatacode):
     data = model.affected_airports(catalog, Iatacode)
